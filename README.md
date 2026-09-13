@@ -9,6 +9,7 @@
 [![Team: SIX Wonders](https://img.shields.io/badge/Team-SIX__Wonders-gold.svg?style=for-the-badge&logo=github)](https://github.com/Richardfeynman-21/SIX_Wonders)
 [![Next.js 14](https://img.shields.io/badge/Next.js-14.2.5-black.svg?style=for-the-badge&logo=next.js)](https://nextjs.org/)
 [![ESP32 Microcontroller](https://img.shields.io/badge/Firmware-ESP32%20NodeMCU-red.svg?style=for-the-badge&logo=espressif)](https://www.espressif.com/)
+[![FastAPI Simulator](https://img.shields.io/badge/Backend-FastAPI%20Simulator-009688.svg?style=for-the-badge&logo=fastapi)](https://fastapi.tiangolo.com/)
 [![DGMS CMR 2017](https://img.shields.io/badge/Compliance-DGMS%20CMR%202017-emerald.svg?style=for-the-badge&logo=shield)](https://www.dgms.gov.in/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.5-blue.svg?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
 [![TailwindCSS](https://img.shields.io/badge/TailwindCSS-3.4-38bdf8.svg?style=for-the-badge&logo=tailwind-css)](https://tailwindcss.com/)
@@ -20,6 +21,8 @@
 [Mission Overview](#-mission-overview) •
 [System Architecture](#-system-architecture) •
 [Repository Structure](#-repository-structure) •
+[How the Simulator Works](#-how-the-dummy-backend-simulator-works) •
+[Complete API Endpoint Catalog](#-complete-api-endpoint-catalog) •
 [Hardware & Wiring](#-hardware-wiring--pin-allocations) •
 [ESP32 Firmware](#-esp32-rover-firmware) •
 [Frontend Dashboard](#-nextjs-mission-control-dashboard) •
@@ -31,14 +34,14 @@
 
 ## 📌 Mission Overview
 
-Underground coal mines in the Jharkhand coalfield belt (Jharia, Raniganj, Dhanbad, Bokaro) are among the most hazardous environments in the world. Miners face extreme subterranean perils:
-1. **Inflammable & Toxic Gases**: Sudden outbursts of methane ($CH_4$ / firedamp) and deadly carbon monoxide ($CO$ / afterdamp) following spontaneous seam combustion.
-2. **Strata Geotechnical Instability**: Roof falls, sidewall collapses, and coal bursts.
-3. **Severe Inundation & Aquifer Breaches**: Rapid water accumulation sealing off drift escape routes.
+Underground coal mines in the Jharkhand coalfield belt (Jharia, Raniganj, Dhanbad, Bokaro) are among the most hazardous industrial environments in the world. Mineworkers face extreme subterranean perils:
+1. **Inflammable & Toxic Gas Outbursts**: Accumulation of methane ($CH_4$ / firedamp) and lethal carbon monoxide ($CO$ / afterdamp) following spontaneous coal seam combustion.
+2. **Strata Geotechnical Instabilities**: Roof falls, sidewall spalling, and coal burst shockwaves.
+3. **Severe Inundation & Aquifer Breaches**: Sudden water buildup sealing off drift escape routes.
 4. **Zero-Visibility Darkness & Airborne Particulate**: Dense coal dust and smoke rendering optical navigation impossible.
-5. **Trapped Survivor Localization**: Inability of surface command stations to pinpoint or communicate with survivors through collapsed galleries without risking rescue personnel.
+5. **Trapped Survivor Localization**: Inability of surface command posts to locate or communicate with survivors through collapsed galleries without risking rescue personnel.
 
-**RAKSHAK-MINE** is an intelligent, low-cost autonomous rescue rover coupled with a mission control surface dashboard designed by **Team SIX Wonders**. It enables surface operators to remotely explore dangerous drifts, gauge atmospheric toxins, detect acoustic taps and thermal signatures of trapped survivors, map subterranean obstacles in real-time, and coordinate rescue efforts with zero human risk.
+**RAKSHAK-MINE** is an autonomous rescue rover and real-time surface mission control system created by **Team SIX Wonders**. It enables surface operators to remotely explore hazardous drifts, gauge atmospheric toxins, detect acoustic tapping and thermal biometric signatures of trapped survivors, map subterranean obstacles, and coordinate rescue efforts with zero human risk.
 
 ---
 
@@ -56,17 +59,20 @@ graph TD
         H[Searchlight LED & Emergency Siren] -->|GPIO 22| A
     end
 
-    subgraph Surface Station Gateway & Communication
-        A <==>|Local AP / Wi-Fi WebSocket & REST / LoRa 868MHz| I[Surface Station Gateway]
+    subgraph Surface Station & Simulator Layer
+        I[Dummy Backend Simulator - FastAPI port 8000]
+        I <-->|2 Hz Live Async WebSocket /ws/telemetry| J[Mission Control Dashboard]
+        I <-->|REST Endpoints: Controls, Presets, Chat, PDF| J
     end
 
-    subgraph Surface Command Post - Mission Control
-        I <==> J[Next.js 14 Mission Control Dashboard]
-        J --> K[Tactical Teleoperation Cockpit]
-        J --> L[Atmospheric Gas Telemetry]
-        J --> M[Survivor Acoustic & Thermal Triage]
-        J --> N[Subterranean Vector Drift Map]
-        J --> O[Official DGMS Form-IV PDF Generator]
+    subgraph Surface Command Post - Next.js 14 Frontend
+        J[Next.js 14 Mission Control Dashboard]
+        J --> K[Tactical Teleoperation Cockpit Modal]
+        J --> L[DGMS CMR 2017 Atmospheric Gas Gauges]
+        J --> M[Survivor Acoustic 320Hz & Thermal Triage]
+        J --> N[Subterranean Vector Drift Spatial Map]
+        J --> O[Official DGMS Form-IV PDF Report Generator]
+        J --> P[Two-Way LoRa & PTT Voice Intercom]
     end
 ```
 
@@ -74,11 +80,9 @@ graph TD
 
 ## 📁 Repository Structure
 
-Both the Next.js 14 Mission Control Frontend and the ESP32 Rover Firmware are unified within this repository:
-
 ```
 SIX_Wonders/
-├── docs/                                  # Project assets and team emblems
+├── docs/                                  # Project media & documentation assets
 │   └── logo.jpg                           # Official Team SIX Wonders emblem
 │
 ├── esp32_rover_firmware/                  # Complete ESP32 Rover Firmware
@@ -90,17 +94,13 @@ SIX_Wonders/
 │
 ├── frontend/                              # Next.js 14 Surface Mission Control Dashboard
 │   ├── public/                            # Static assets (rover photos, maps, icons)
-│   │   ├── assets/
-│   │   │   ├── camera_feed.jpg            # Optical inspection feed asset
-│   │   │   ├── mine_map.jpg               # Sector 4B drift blueprint
-│   │   │   ├── rover.png                  # High-DPI transparent rover render
-│   │   │   └── sidebar_footer.jpg         # Sidebar banner graphic
+│   │   ├── assets/                        # High-resolution graphics & UI mockups
 │   │   ├── favicon.ico
 │   │   ├── icon.svg
 │   │   └── logo.svg
 │   ├── src/
 │   │   ├── app/
-│   │   │   ├── globals.css                # Custom glassmorphism, scrollbars, and MG classes
+│   │   │   ├── globals.css                # Custom glassmorphism, scrollbars & MG classes
 │   │   │   ├── layout.tsx                 # Root HTML layout and metadata
 │   │   │   └── page.tsx                   # Central Dashboard with Breadcrumb Subsystems
 │   │   ├── components/
@@ -128,23 +128,296 @@ SIX_Wonders/
 │   ├── tsconfig.json                      # Strict TypeScript compilation options
 │   └── README.md                          # Frontend setup, configuration & architecture
 │
-├── backend/                               # FastAPI Mission Control Service (Optional Local Server)
-│   ├── main.py                            # Telemetry ingestion, WebSockets & command routing
-│   ├── database.py                        # SQLite circular FIFO logging
-│   ├── dgms_standards.py                  # DGMS compliance threshold calculations
-│   ├── models.py                          # Pydantic data schemas
-│   ├── pdf_exporter.py                    # ReportLab Form-IV incident dossier generator
-│   └── requirements.txt                   # Python dependencies
-│
-├── .gitignore                             # Clean filtering for Node, Python & binaries
-└── README.md                              # Master project briefing dossier (this file)
+├── dummy_backend.py                       # Standalone Python FastAPI Mission Simulator
+├── dummy_backend/                         # State & routing modules for simulator
+│   ├── __init__.py
+│   ├── state.py                           # State store & defaults
+│   └── routers/
+├── esp32.ino                              # Standalone copy of ESP32 firmware
+├── AI_Mine_Safety_Rescue_Rover_Detailed_BOM_Architectures.xlsx # Bill of Materials & Costs
+├── SurfaceStationGateway.java             # Standalone Java gateway bridge
+├── .gitignore                             # Clean filtering for Node, Python, logs & scripts
+└── README.md                              # Master project dossier (this file)
 ```
+
+---
+
+## 🔬 How the Dummy Backend Simulator Works
+
+The backend (`dummy_backend.py`) is a **standalone, self-contained Python FastAPI server** operating on port `8000`. It emulates the subterranean sensor array, motor drivers, LoRa radio link, and statutory DGMS safety rules without requiring physical hardware.
+
+### 1. The 2 Hz Asynchronous Telemetry Loop
+* Runs as a background task via `asyncio.create_task(telemetry_background_worker())`.
+* Executes every **500 ms (2 Hz)**, calling `update_telemetry_tick()`.
+* Generates realistic continuous telemetry fluctuations using bounded random walks and trigonometric oscillations:
+  - **Battery Discharge**: Simulates realistic battery drain based on motor activity (faster drain when moving at sprint speed 255 PWM).
+  - **Atmospheric Gases**:
+    - **Methane ($CH_4$)**: Safe baseline (~0.42% – 0.82%), with slight natural variations.
+    - **Carbon Monoxide ($CO$)**: 22–26 ppm (safe DGMS threshold is < 50 ppm).
+    - **Carbon Dioxide ($CO_2$)**: 400–440 ppm.
+    - **Oxygen ($O_2$)**: 20.4% – 20.8%.
+  - **Subterranean Climate**: Ambient temperature ($21.8^\circ\text{C} – 22.4^\circ\text{C}$), relative humidity (66%–70%), and pressure ($101.0 – 101.4\text{ kPa}$ corresponding to -310m depth).
+  - **Biometrics & Survivor Triage**: Human acoustic tapping patterns (320 Hz) and thermal body heat signatures ($36.8^\circ\text{C}$).
+* Automatically packages the snapshot and broadcasts it to all connected WebSocket clients on `/ws/telemetry`.
+
+### 2. Anomaly & Disaster Injection Mode (`/api/sim/toggle`)
+* Allows operators to test emergency protocols with a single click or API call.
+* When **Anomaly Mode** is triggered:
+  - Methane spikes to **2.35%** (violating the DGMS Regulation 169 lower explosive limit of 1.25%).
+  - Carbon monoxide surges to **68 ppm** (violating the 50 ppm permissible exposure limit).
+  - Temperature rises to **$34.5^\circ\text{C}$** and humidity to **83%**.
+  - Immediate `CRITICAL` statutory alerts are injected into the FIFO log stream.
+  - Compliance state switches from `COMPLIANT` to `NON_COMPLIANT`, triggering visual warning banners on the dashboard.
+
+### 3. DGMS Compliance Rule Engine
+* Automatically cross-examines incoming telemetry against statutory Coal Mines Regulations (CMR) 2017 thresholds:
+  - **Coal Seam Degree III (Gassy)**: Strict $CH_4 < 0.75\%$ general body limit; automatic cut-off at $1.25\%$.
+  - **Standard DGMS Rescue**: Nominal limits for active search operations.
+  - **Post-Incident Recovery**: Long-term atmospheric stability margins.
+
+### 4. Automated Intercom ACK Engine (`/api/chat/send`)
+* Parses surface operator messages and generates context-aware acoustic replies from the rover:
+  - Queries containing `"gas"` or `"report"` return real-time gas metrics.
+  - Queries containing `"light"` engage the 1200-lumen Cree searchlight.
+  - Queries containing `"siren"` sound the emergency acoustic beacon.
+  - Queries containing `"stop"` halt propulsion and activate geophone listening.
+
+### 5. ReportLab Form-IV PDF Generation (`/api/export/pdf`)
+* Compiles mission data into an official DGMS Form-IV Incident Briefing Report PDF containing:
+  - Mine sector and rover telemetry summary.
+  - Atmospheric gas analysis table with CMR 2017 compliance status.
+  - Survivor triage log and thermal readings.
+  - Chronological event audit log.
+
+---
+
+## 📡 Complete API Endpoint Catalog
+
+All endpoints are hosted at `http://127.0.0.1:8000`.
+
+### 1. Root & Status Endpoints
+
+#### `GET /`
+Verifies backend connectivity, version, and operational mode.
+* **Request**: None
+* **Response (JSON)**:
+  ```json
+  {
+    "rover_id": "RAKSHAK-Mine",
+    "status": "ONLINE",
+    "system": "RAKSHAK-Mine Autonomous Mine Rescue Rover Simulator",
+    "version": "1.0.0",
+    "rate": "2 Hz (500ms)",
+    "anomaly_mode": false,
+    "active_dgms_preset": "COAL_SEAM_DEGREE_III"
+  }
+  ```
+
+#### `GET /api/status`
+Returns the current unified telemetry payload.
+* **Request**: None
+* **Response (JSON)**:
+  ```json
+  {
+    "rover_id": "RAKSHAK-Mine",
+    "system_status": "OPERATIONAL",
+    "esp32_online": true,
+    "pi_online": true,
+    "battery_voltage": 11.85,
+    "battery_percent": 78.0,
+    "battery_status": "NORMAL",
+    "temperature_c": 22.1,
+    "humidity_pct": 68.0,
+    "pressure_hpa": 101.2,
+    "mq135_ppm": 165.0,
+    "mq7_ppm": 25.0,
+    "gas_ch4": 0.8,
+    "gas_co": 25.0,
+    "gas_co2": 420.0,
+    "gas_o2": 20.6,
+    "audio_ambient_db": 42.0,
+    "acoustic_tapping_detected": true,
+    "obstacle_distance_cm": 120.0,
+    "obstacle_detected": false,
+    "motor_state": "STOPPED",
+    "motor_speed": 200,
+    "buzzer_active": false,
+    "searchlight_active": true,
+    "thermal_hotspots_count": 1,
+    "thermal_max_temp_c": 36.8,
+    "ai_detected_survivors": 1,
+    "survivor_triage_priority": "HIGH",
+    "dgms_compliance_status": "COMPLIANT",
+    "active_alerts": [
+      {
+        "id": 1,
+        "time": "14:31",
+        "timestamp": "2026-09-13T12:00:00.000000",
+        "alert_type": "SURVIVOR",
+        "message": "Possible human voice detected (RAKSHAK-Mine)",
+        "severity": "HIGH",
+        "value": 1.0,
+        "threshold": 1.0
+      }
+    ],
+    "ch4_pct": 0.8,
+    "co_ppm": 25.0,
+    "co2_ppm": 420.0,
+    "o2_pct": 20.6,
+    "pressure_kpa": 101.2,
+    "last_update": "12:00:00"
+  }
+  ```
+
+---
+
+### 2. Teleoperation & Controls
+
+#### `POST /api/rover/control`
+Dispatches propulsion commands, speed adjustments, searchlight toggles, or emergency stops.
+* **Request Body (JSON)**:
+  ```json
+  {
+    "command": "FORWARD",
+    "speed": 220
+  }
+  ```
+  *Supported commands*: `FORWARD`, `BACKWARD`, `LEFT`, `RIGHT`, `STOP`, `E_STOP`, `LIGHT_ON`, `LIGHT_OFF`, `BUZZER_ON`, `BUZZER_OFF`.
+* **Response (JSON)**:
+  ```json
+  {
+    "status": "ACK",
+    "command": "FORWARD",
+    "motor_state": "FORWARD",
+    "buzzer_active": false,
+    "searchlight_active": true
+  }
+  ```
+
+---
+
+### 3. DGMS Compliance & Regulatory
+
+#### `POST /api/dgms/preset`
+Updates the active Coal Mines Regulations threshold preset.
+* **Query Parameter**: `preset` (optional, e.g. `COAL_SEAM_DEGREE_III`, `STANDARD_DGMS`, `POST_INCIDENT_RECOVERY`)
+* **Request Body (JSON, alternative)**:
+  ```json
+  {
+    "preset": "COAL_SEAM_DEGREE_III"
+  }
+  ```
+* **Response (JSON)**:
+  ```json
+  {
+    "status": "OK",
+    "preset": "COAL_SEAM_DEGREE_III"
+  }
+  ```
+
+---
+
+### 4. Reporting & Auditing
+
+#### `POST /api/export/pdf`
+Generates and downloads the official DGMS Form-IV Incident Briefing Report PDF.
+* **Request**: None
+* **Response**: Binary stream (`application/pdf`) with `Content-Disposition: attachment; filename="DGMS_Incident_Report_RAKSHAK_Mine.pdf"`.
+
+---
+
+### 5. Historical Data & Alerts
+
+#### `GET /api/alerts`
+Returns recent and active incident alerts.
+* **Query Parameters**:
+  - `limit` (integer, default `20`, min `1`, max `100`): Maximum alerts to return.
+* **Response (JSON Array)**:
+  ```json
+  [
+    {
+      "id": 1,
+      "time": "14:31",
+      "timestamp": "2026-09-13T12:00:00.000000",
+      "alert_type": "SURVIVOR",
+      "message": "Possible human voice detected (RAKSHAK-Mine)",
+      "severity": "HIGH",
+      "value": 1.0,
+      "threshold": 1.0
+    }
+  ]
+  ```
+
+#### `GET /api/telemetry/history`
+Returns time-series telemetry snapshots for historical trend charting.
+* **Query Parameters**:
+  - `limit` (integer, default `60`, min `5`, max `300`): Number of past ticks.
+* **Response (JSON Array)**: Array of `RoverCombinedStatus` objects.
+
+---
+
+### 6. Simulation & Testing
+
+#### `POST /api/sim/toggle`
+Toggles or sets the anomaly injection mode.
+* **Query Parameter**: `enable` (boolean, optional)
+* **Request Body (JSON, alternative)**: `{"enable": true}`
+* **Response (JSON)**:
+  ```json
+  {
+    "status": "OK",
+    "anomaly_mode": true,
+    "system_status": "EMERGENCY",
+    "dgms_compliance_status": "NON_COMPLIANT"
+  }
+  ```
+
+---
+
+### 7. Surface-to-Drift Intercom
+
+#### `POST /api/chat/send`
+Sends an operator message to the rover over simulated LoRa/acoustic link and receives an automated reply.
+* **Request Body (JSON)**:
+  ```json
+  {
+    "message": "Report atmospheric gas levels immediately",
+    "recipient": "RAKSHAK-Mine"
+  }
+  ```
+* **Response (JSON)**:
+  ```json
+  {
+    "status": "ACK",
+    "rover_id": "RAKSHAK-Mine",
+    "recipient": "RAKSHAK-Mine",
+    "message": "Report atmospheric gas levels immediately",
+    "reply": "RAKSHAK-Mine Status Report: Systems operational at 12:00. CH4: 0.8%, CO: 25.0 ppm. Survivor signature: 36.8°C at Sector B-4.",
+    "timestamp": "12:00"
+  }
+  ```
+
+---
+
+### 8. Real-Time Streaming WebSocket
+
+#### `WS /ws/telemetry`
+High-frequency (2 Hz / 500ms) full-duplex WebSocket stream.
+* **Server to Client**: Pushes `RoverCombinedStatus` JSON payload every 500ms.
+* **Client to Server**: Accepts teleoperation commands in JSON format:
+  ```json
+  {
+    "command": "FORWARD",
+    "speed": 220
+  }
+  ```
+  Immediately echoes updated status back upon receipt.
 
 ---
 
 ## ⚡ Hardware Wiring & Pin Allocations
 
-The rover uses an **ESP32 30-Pin NodeMCU** microcontroller. All pin allocations and circuit specifications are strictly mapped in [`esp32_rover_firmware/esp32_rover_firmware.ino`](esp32_rover_firmware/esp32_rover_firmware.ino):
+The rover uses an **ESP32 30-Pin NodeMCU** microcontroller. All pin allocations are strictly defined in [`esp32_rover_firmware/esp32_rover_firmware.ino`](esp32_rover_firmware/esp32_rover_firmware.ino):
 
 | Subsystem | Component | ESP32 Pin | Function / Logic | Hardware Notes |
 | :--- | :--- | :--- | :--- | :--- |
@@ -160,9 +433,6 @@ The rover uses an **ESP32 30-Pin NodeMCU** microcontroller. All pin allocations 
 | **Gas Sensing** | MQ-7 (CO) | **GPIO 35** | Analog Carbon Monoxide | ADC1_CH7 (Input-only pin) |
 | **Safety Warning**| High-Decibel Siren| **GPIO 22** | Strobe & Acoustic Buzzer | Active High output |
 | **Power Telemetry**| 3S Li-ion Battery | **GPIO 36 (VP)** | Resistor Divider Voltage | Scaled 0.00392 ADC factor |
-
-> [!WARNING]
-> **HC-SR04 Echo Pin Safety**: The HC-SR04 echo pin outputs a 5V logic signal. Never connect it directly to ESP32 GPIO 4 without a voltage divider (1kΩ in series and 2kΩ to ground) to protect the 3.3V ESP32 inputs.
 
 ---
 
@@ -182,17 +452,15 @@ The firmware located in [`esp32_rover_firmware/`](esp32_rover_firmware/) provide
 
 ## 💻 Next.js Mission Control Dashboard
 
-The frontend application located in [`frontend/`](frontend/) is built with **Next.js 14 (App Router)**, **TypeScript**, and **Tailwind CSS**. It provides a real-time command station:
+The frontend application located in [`frontend/`](frontend/) is built with **Next.js 14 (App Router)**, **TypeScript**, and **Tailwind CSS**:
 
 1. **Mission Control Header**:
    - Live connectivity badges: ESP32 Core Online & LoRa Sub-GHz Link Status.
-   - Real-time UTC clock.
    - Interactive Active Incident Alerts drawer with one-click routing.
    - Hardware Emergency Stop (`E-STOP`) disengaging all propulsion within 20ms.
 2. **Tactical Teleoperation Cockpit Modal (`RoverControlModal.tsx`)**:
    - Dynamic PWM speed slider (100–255 PWM) with real-time percentage indicators.
    - 3x3 directional keypad + full keyboard support (`W`, `A`, `S`, `D`, Arrows, Space to STOP).
-   - Searchlight toggle and emergency siren beacon.
    - Throttled key-repeat prevention ensuring reliable command dispatch.
 3. **Subsystem Navigation & Global Breadcrumbs**:
    - Sidebar with 14 specialized subsystem routes.
@@ -213,30 +481,23 @@ The frontend application located in [`frontend/`](frontend/) is built with **Nex
 
 ## 🚀 Getting Started
 
-### 1. ESP32 Firmware Flashing
+### 1. Launching the Simulator Backend
 
-1. Open **Arduino IDE** (or **VS Code with PlatformIO**).
-2. Install the **ESP32 Board Package** (`Tools > Board > Boards Manager > ESP32 by Espressif`).
-3. Open [`esp32_rover_firmware/esp32_rover_firmware.ino`](esp32_rover_firmware/esp32_rover_firmware.ino).
-4. Configure your board settings:
-   - **Board**: `ESP32 Dev Module`
-   - **Upload Speed**: `921600`
-   - **CPU Frequency**: `240MHz (WiFi/BT)`
-   - **Flash Frequency**: `80MHz`
-   - **Partition Scheme**: `Default 4MB with spiffs (1.2MB APP/1.5MB SPIFFS)`
-5. Connect your ESP32 via micro-USB and click **Upload**.
-6. Connect to the rover's Wi-Fi network:
-   - **SSID**: `RAKSHAK-ROVER-AP`
-   - **Password**: `mineguard123`
-   - Access the standalone rover HUD at `http://192.168.4.1`
+```bash
+# Optional: create a virtual environment
+python3 -m venv .venv
+source .venv/bin/activate
 
-### 2. Next.js Frontend Dashboard Setup
+# Install required dependencies
+pip install fastapi uvicorn pydantic reportlab
 
-#### Prerequisites
-- **Node.js**: v18.17.0 or higher
-- **npm**: v9.0.0 or higher
+# Run the standalone simulator
+python3 dummy_backend.py
+```
+The server will start at `http://127.0.0.1:8000`.
 
-#### Installation
+### 2. Running the Next.js Frontend Dashboard
+
 ```bash
 # Navigate to the frontend directory
 cd frontend
@@ -253,7 +514,8 @@ Open your browser and navigate to:
 http://localhost:3000
 ```
 
-#### Production Build Verification
+### 3. Production Build Verification
+
 ```bash
 # Create optimized production build
 npm run build
@@ -262,11 +524,19 @@ npm run build
 npm run start
 ```
 
+### 4. Flashing the ESP32 Rover Firmware
+
+1. Open **Arduino IDE** (or VS Code with PlatformIO).
+2. Install the **ESP32 Board Package** (`Tools > Board > Boards Manager > ESP32 by Espressif`).
+3. Open [`esp32_rover_firmware/esp32_rover_firmware.ino`](esp32_rover_firmware/esp32_rover_firmware.ino).
+4. Board Settings: `ESP32 Dev Module`, Upload Speed: `921600`, Flash Frequency: `80MHz`.
+5. Connect your ESP32 via USB and click **Upload**.
+
 ---
 
 ## 📜 Statutory DGMS CMR 2017 Compliance
 
-RAKSHAK-MINE is engineered in compliance with the **Coal Mines Regulations (CMR) 2017** issued by the **Directorate General of Mines Safety (DGMS)**, Ministry of Labour and Employment, Government of India:
+RAKSHAK-MINE is engineered in compliance with the **Coal Mines Regulations (CMR) 2017** issued by the **Directorate General of Mines Safety (DGMS)**:
 
 * **Regulation 169 (Inflammable & Noxious Gases)**: Continuous monitoring of methane ($CH_4 < 0.75\%$ general body limit; electric power cut-off at $1.25\%$) and carbon monoxide ($CO < 50 \text{ ppm}$).
 * **Regulation 170 (Electric Apparatus in Gassy Seams)**: Low-voltage intrinsically safe logic circuits rated for Degree III gassy coal seams.

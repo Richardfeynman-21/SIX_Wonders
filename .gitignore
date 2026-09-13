@@ -23,6 +23,7 @@ next-env.d.ts
 venv/
 ENV/
 __pycache__/
+backend/
 backend/__pycache__/
 *.py[cod]
 *$py.class
