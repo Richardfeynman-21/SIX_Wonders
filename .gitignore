@@ -1,0 +1,59 @@
+# Dependencies
+node_modules/
+frontend/node_modules/
+.pnp
+.pnp.js
+
+# Testing
+coverage/
+
+# Next.js build output
+.next/
+frontend/.next/
+out/
+build/
+dist/
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# Python virtual environment & cache
+.venv/
+venv/
+ENV/
+__pycache__/
+backend/__pycache__/
+*.py[cod]
+*$py.class
+*.sqlite3
+*.db
+backend/mine_rover.db
+
+# Logs
+*.log
+backend.log
+mock_rover.log
+streamlit.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Java class files
+*.class
+
+# Environment files
+.env*.local
+.env
+
+# Editor & OS files
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.idea/
+.vscode/
+.streamlit/
+scratch/
