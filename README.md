@@ -432,7 +432,6 @@ The rover uses an **ESP32 30-Pin NodeMCU** microcontroller. All pin allocations 
 | **Gas Sensing** | MQ-4 (CH4) | **GPIO 34** | Analog Methane Level | ADC1_CH6 (Input-only pin) |
 | **Gas Sensing** | MQ-7 (CO) | **GPIO 35** | Analog Carbon Monoxide | ADC1_CH7 (Input-only pin) |
 | **Safety Warning**| High-Decibel Siren| **GPIO 22** | Strobe & Acoustic Buzzer | Active High output |
-| **Power Telemetry**| 3S Li-ion Battery | **GPIO 36 (VP)** | Resistor Divider Voltage | Scaled 0.00392 ADC factor |
 
 ---
 

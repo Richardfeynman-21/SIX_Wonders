@@ -42,7 +42,6 @@ Autonomous Safety & Rescue Rover Microcontroller Firmware for **ESP32 30-Pin Nod
 | **GPIO 34** | AOUT | MQ-4 (Methane CH4) | ADC1_CH6 |
 | **GPIO 35** | AOUT | MQ-7 (Carbon Monoxide) | ADC1_CH7 |
 | **GPIO 22** | Output | Alert Siren / Searchlight | Active High |
-| **GPIO 36 (VP)**| Analog | 3S Li-ion Battery Voltage | 100kΩ / 10kΩ divider (0.00392 factor) |
 
 ---
 
