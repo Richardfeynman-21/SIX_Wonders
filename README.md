@@ -6,6 +6,16 @@
 ### Autonomous Robotic Search, Rescue & Underground Mine Safety Monitoring System
 **Smart India Hackathon (SIH 2026) | Problem Statement: AI Hazard Detection & Robotics in Underground Mines**
 
+### 🔧 Main Components
+
+- **ESP32 Rover Firmware** – Controls and communicates with the rover hardware.
+- **Surface Station Gateway** – Handles communication between the rover and
+  the surface station.
+- **Frontend** – Provides the user interface for monitoring and control.
+- **Backend** – Supports data and application services.
+- **Documentation** – Contains project-related technical documentation.
+
+---
 [![Team: SIX Wonders](https://img.shields.io/badge/Team-SIX__Wonders-gold.svg?style=for-the-badge&logo=github)](https://github.com/Richardfeynman-21/SIX_Wonders)
 [![Next.js 14](https://img.shields.io/badge/Next.js-14.2.5-black.svg?style=for-the-badge&logo=next.js)](https://nextjs.org/)
 [![ESP32 Microcontroller](https://img.shields.io/badge/Firmware-ESP32%20NodeMCU-red.svg?style=for-the-badge&logo=espressif)](https://www.espressif.com/)
