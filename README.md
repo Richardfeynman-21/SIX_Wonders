@@ -34,7 +34,7 @@
 [How the Simulator Works](#-how-the-dummy-backend-simulator-works) •
 [Complete API Endpoint Catalog](#-complete-api-endpoint-catalog) •
 [Hardware & Wiring](#-hardware-wiring--pin-allocations) •
-[ESP32 Firmware](#-esp32-rover-firmware) •
+[Rover Capabilities](#-rover-capabilities--architecture) •
 [Frontend Dashboard](#-nextjs-mission-control-dashboard) •
 [Getting Started](#-getting-started) •
 [DGMS Compliance](#-statutory-dgms-cmr-2017-compliance)
@@ -95,13 +95,6 @@ SIX_Wonders/
 ├── docs/                                  # Project media & documentation assets
 │   └── logo.jpg                           # Official Team SIX Wonders emblem
 │
-├── esp32_rover_firmware/                  # Complete ESP32 Rover Firmware
-│   ├── esp32_rover_firmware.ino           # Main C++ firmware (motor PWM, sensors, failsafes)
-│   ├── dashboard_html.h                   # Embedded standalone HTML5/WebSocket tactical HUD
-│   ├── logo.jpg                           # Embedded logo asset for standalone webserver
-│   ├── logo_base64.txt                    # Base64 pre-encoded string of rover emblem
-│   └── README.md                          # Firmware flashing & hardware calibration guide
-│
 ├── frontend/                              # Next.js 14 Surface Mission Control Dashboard
 │   ├── public/                            # Static assets (rover photos, maps, icons)
 │   │   ├── assets/                        # High-resolution graphics & UI mockups
@@ -122,7 +115,7 @@ SIX_Wonders/
 │   │   │   ├── MineMapCard.tsx            # Interactive spatial map with waypoint inspection
 │   │   │   ├── PowerMonitoringCard.tsx    # 3S Li-ion discharge curve & BMS telemetry
 │   │   │   ├── RoverControlModal.tsx      # Tactical teleoperation cockpit with PWM slider
-│   │   │   ├── Sidebar.tsx                # 14-item navigation drawer with badge alerts
+│   │   │   ├── Sidebar.tsx                # Collapsible 14-item navigation drawer with badges
 │   │   │   ├── StatusCardsRow.tsx         # Rover status, battery gauge, connection indicators
 │   │   │   ├── SubsystemViews.tsx         # Fullscreen views for all 14 subsystem routes
 │   │   │   ├── SurvivorAudioWaveform.tsx  # Web Audio API 320Hz acoustic tapping analyzer
@@ -143,9 +136,8 @@ SIX_Wonders/
 │   ├── __init__.py
 │   ├── state.py                           # State store & defaults
 │   └── routers/
-├── esp32.ino                              # Standalone copy of ESP32 firmware
-├── AI_Mine_Safety_Rescue_Rover_Detailed_BOM_Architectures.xlsx # Bill of Materials & Costs
-├── SurfaceStationGateway.java             # Standalone Java gateway bridge
+├── package.json                           # Root workspace build scripts
+├── vercel.json                            # Vercel deployment configuration
 ├── .gitignore                             # Clean filtering for Node, Python, logs & scripts
 └── README.md                              # Master project dossier (this file)
 ```
@@ -427,7 +419,7 @@ High-frequency (2 Hz / 500ms) full-duplex WebSocket stream.
 
 ## ⚡ Hardware Wiring & Pin Allocations
 
-The rover uses an **ESP32 30-Pin NodeMCU** microcontroller. All pin allocations are strictly defined in [`esp32_rover_firmware/esp32_rover_firmware.ino`](esp32_rover_firmware/esp32_rover_firmware.ino):
+The rover uses an **ESP32 30-Pin NodeMCU** microcontroller. Standard hardware pin allocations are defined below:
 
 | Subsystem | Component | ESP32 Pin | Function / Logic | Hardware Notes |
 | :--- | :--- | :--- | :--- | :--- |
@@ -445,14 +437,13 @@ The rover uses an **ESP32 30-Pin NodeMCU** microcontroller. All pin allocations 
 
 ---
 
-## 🤖 ESP32 Rover Firmware
+## 🤖 Rover Capabilities & Architecture
 
-The firmware located in [`esp32_rover_firmware/`](esp32_rover_firmware/) provides autonomous failsafes and real-time teleoperation capabilities:
+The rover hardware architecture provides autonomous failsafes and real-time teleoperation capabilities:
 
 * **Dual-Bridge L298N Propulsion**: 1 kHz hardware PWM driving 4 geared motors with smooth speed ramp control (100–255 PWM).
 * **180° Physical Chassis Inversion**: Inverted chassis logic handles sonar and gas sensor orientation with a software-controllable `reverseOrientation` flag.
 * **Ultrasonic Auto-Brake Failsafe (DGMS CMR 173)**: If an obstacle is detected closer than **18 cm**, propulsion is instantaneously halted, overriding manual commands to prevent collisions.
-* **Embedded Standalone Web HUD**: Includes [`dashboard_html.h`](esp32_rover_firmware/dashboard_html.h), an embedded single-file dashboard served directly by the ESP32 on port `80` over Wi-Fi AP (`RAKSHAK-ROVER-AP` / `mineguard123`) when surface station networks are out of range.
 * **Telemetry REST API**:
   - `GET /api/status`: Outputs JSON payload containing gas readings, distance, motor state, and battery voltage.
   - `POST /api/command`: Accepts JSON payload `{"command": "FORWARD", "speed": 220}` to control locomotion.
@@ -532,14 +523,6 @@ npm run build
 # Start production server
 npm run start
 ```
-
-### 4. Flashing the ESP32 Rover Firmware
-
-1. Open **Arduino IDE** (or VS Code with PlatformIO).
-2. Install the **ESP32 Board Package** (`Tools > Board > Boards Manager > ESP32 by Espressif`).
-3. Open [`esp32_rover_firmware/esp32_rover_firmware.ino`](esp32_rover_firmware/esp32_rover_firmware.ino).
-4. Board Settings: `ESP32 Dev Module`, Upload Speed: `921600`, Flash Frequency: `80MHz`.
-5. Connect your ESP32 via USB and click **Upload**.
 
 ---
 
